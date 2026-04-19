@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Алексей Соколов | оператор</title>
+  <!-- Шрифты: Playfair Display для заголовков, Inter для текста -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none;
+    }
+
+    body {
+      background-color: #0c0c0c;
+      color: #eaeaea;
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      line-height: 1.6;
+      scroll-behavior: smooth;
+      position: relative;
+    }
+
+    /* Кастомный курсор — тонкое кольцо */
+    .custom-cursor {
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(191, 163, 123, 0.8);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
+      box-shadow: 0 0 10px rgba(191, 163, 123, 0.3);
+    }
+
+    .custom-cursor::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2px;
+      height: 2px;
+      background-color: #bfa37b;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .custom-cursor.hover {
+      width: 40px;
+      height: 40px;
+      border-color: #bfa37b;
+      background-color: rgba(191, 163, 123, 0.1);
+      box-shadow: 0 0 20px rgba(191, 163, 123, 0.5);
+    }
+
+    /* Текстурный фон (шум) */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="1" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.3 0"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.4"/></svg>');
+      opacity: 0.4;
+      z-index: 9999;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 5%;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1.1;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(191, 163, 123, 0.3);
+      padding-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+      font-weight: 400;
+      color: #bfa37b;
+    }
+
+    .accent {
+      color: #bfa37b;
+    }
+
+    /* Кнопки */
+    .btn {
+      display: inline-block;
+      padding: 0.9rem 2.8rem;
+      background: transparent;
+      border: 1px solid #bfa37b;
+      color: #bfa37b;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.4s ease;
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: #bfa37b;
+      transition: left 0.4s ease;
+      z-index: -1;
+    }
+
+    .btn:hover {
+      color: #0c0c0c;
+    }
+
+    .btn:hover::before {
+      left: 0;
+    }
+
+    /* Навигация */
+    .header {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      background-color: #0c0c0c;
+      border-bottom: 1px solid rgba(191, 163, 123, 0.15);
+      padding: 1rem 5%;
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .header-content.hidden {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+    }
+
+    /* Цитата, появляющаяся при скрытом меню */
+    .header-quote {
+      position: absolute;
+      right: 5%;
+      color: rgba(255, 255, 255, 0.3);
+      font-style: italic;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .header-quote.visible {
+      opacity: 1;
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+      color: #bfa37b;
+      transition: transform 0.2s;
+      cursor: none;
+    }
+
+    .logo:active {
+      transform: scale(0.95);
+    }
+
+    .nav a {
+      color: #eaeaea;
+      text-decoration: none;
+      margin-left: 2.5rem;
+      font-size: 0.9rem;
+      transition: color 0.3s, transform 0.2s;
+      display: inline-block;
+      cursor: none;
+    }
+
+    .nav a:hover {
+      color: #bfa37b;
+      transform: translateY(-2px);
+    }
+
+    .hamburger {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      cursor: none;
+      padding: 0;
+      margin-right: 1.5rem;
+      z-index: 1001;
+    }
+
+    .hamburger span {
+      width: 100%;
+      height: 3px;
+      background-color: #bfa37b;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    .header-placeholder {
+      height: 0;
+      transition: height 0.3s ease;
+    }
+
+    .header-placeholder.expanded {
+      height: 80px;
+    }
+
+    .header-placeholder.compact {
+      height: 60px;
+    }
+
+    /* Отступ для якорей */
+    #about, #portfolio, #gear, #contact {
+      scroll-margin-top: 80px;
+    }
+
+    /* Hero с видео */
+    .hero {
+      position: relative;
+      height: 70vh;
+      min-height: 500px;
+      margin: 0 0 4rem 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(191,163,123,0.3) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      padding: 2rem;
+      animation: fadeInUp 1.5s ease;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      letter-spacing: 2px;
+    }
+
+    .hero-content .btn {
+      margin-top: 2.5rem;
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Динамическая цитата */
+    .quote {
+      margin: 3rem 0;
+      padding: 1.5rem 4rem;
+      background: #111;
+      border-left: 3px solid #bfa37b;
+      font-size: 1.8rem;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: #ddd;
+      quotes: "“" "”";
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      transition: opacity 0.5s ease;
+      opacity: 1;
+    }
+
+    .quote::before {
+      content: "“";
+      font-size: 4rem;
+      line-height: 0.8;
+      color: #bfa37b;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .quote.fade-out {
+      opacity: 0;
+    }
+
+    /* Фильтры портфолио */
+    .filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin: 2rem 0 3rem;
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid #bfa37b;
+      padding: 0.5rem 1.5rem;
+      font-size: 0.9rem;
+      cursor: none;
+      transition: all 0.3s;
+      color: #bfa37b;
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover {
+      background: #bfa37b;
+      color: #0c0c0c;
+      transform: translateY(-2px);
+    }
+
+    /* Асимметричная сетка портфолио */
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin: 4rem 0;
+    }
+
+    .grid-item {
+      background-color: #1a1a1a;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      overflow: hidden;
+      cursor: none;
+      transition: all 0.4s;
+      border: 1px solid transparent;
+    }
+
+    .grid-item.large {
+      grid-column: span 2;
+      grid-row: span 2;
+      aspect-ratio: 16 / 9;
+    }
+
+    .grid-item:hover {
+      border-color: #bfa37b;
+      transform: translateY(-5px);
+      box-shadow: 0 20px 30px -10px rgba(0,0,0,0.5);
+    }
+
+    .grid-item::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(191,163,123,0.4) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .grid-item:hover::after {
+      opacity: 1;
+    }
+
+    .grid-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 2px, transparent 2px, transparent 8px);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 2;
+      mix-blend-mode: overlay;
+    }
+
+    .grid-item:hover::before {
+      opacity: 0.3;
+    }
+
+    .grid-item img, .grid-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+
+    .grid-item:hover img, .grid-item:hover video {
+      opacity: 1;
+    }
+
+    .grid-item .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      color: #fff;
+      transform: translateY(100%);
+      transition: transform 0.4s;
+      z-index: 3;
+    }
+
+    .grid-item:hover .overlay {
+      transform: translateY(0);
+    }
+
+    .grid-item .overlay span {
+      font-size: 0.9rem;
+      color: #bfa37b;
+      text-transform: uppercase;
+    }
+
+    /* Карусель отзывов */
+    .testimonials {
+      margin: 4rem 0;
+      padding: 2rem;
+      background: #111;
+      position: relative;
+    }
+
+    .testimonial-container {
+      position: relative;
+      max-width: 1000px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    .testimonial-slider {
+      display: flex;
+      transition: transform 0.4s ease;
+    }
+
+    .testimonial-slide {
+      flex: 0 0 100%;
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .testimonial-avatar {
+      width: 80px;
+      height: 80px;
+      background-color: #bfa37b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: #0c0c0c;
+      flex-shrink: 0;
+    }
+
+    .testimonial-text {
+      font-style: italic;
+      color: #ddd;
+    }
+
+    .testimonial-like {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .like-btn {
+      background: transparent;
+      border: 1px solid #bfa37b;
+      color: #bfa37b;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: none;
+      transition: all 0.2s;
+    }
+
+    .like-btn:hover {
+      background: #bfa37b;
+      color: #0c0c0c;
+      transform: scale(1.05);
+    }
+
+    .like-count {
+      color: #bfa37b;
+      font-size: 0.9rem;
+    }
+
+    .testimonial-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 1.5rem;
+      position: relative;
+    }
+
+    .testimonial-btn {
+      background: transparent;
+      border: none;
+      color: #bfa37b;
+      width: 40px;
+      height: 40px;
+      font-size: 2rem;
+      cursor: none;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .testimonial-btn:hover {
+      transform: translateY(-50%) scale(1.2);
+      color: #e0c8a0;
+    }
+
+    #prevTestimonial {
+      left: calc(50% - 220px);
+    }
+
+    #nextTestimonial {
+      right: calc(50% - 220px);
+    }
+
+    .testimonial-dots {
+      display: flex;
+      gap: 0.5rem;
+      margin: 0 auto;
+    }
+
+    .testimonial-dot {
+      width: 12px;
+      height: 12px;
+      background: #333;
+      border-radius: 50%;
+      cursor: none;
+      transition: background-color 0.2s;
+    }
+
+    .testimonial-dot.active {
+      background: #bfa37b;
+    }
+
+    /* Таймлайн */
+    .timeline {
+      position: relative;
+      margin: 4rem 0;
+      padding: 2rem 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #bfa37b;
+      transform: translateX(-50%);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin: 2rem 0;
+      width: 50%;
+      padding: 0 2rem;
+    }
+
+    .timeline-item:nth-child(odd) {
+      left: 0;
+      text-align: right;
+    }
+
+    .timeline-item:nth-child(even) {
+      left: 50%;
+    }
+
+    .timeline-year {
+      font-weight: 600;
+      color: #bfa37b;
+      font-size: 1.2rem;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-content {
+      background: transparent;
+      padding: 0.5rem 0;
+      border-bottom: 2px solid #bfa37b;
+      display: inline-block;
+    }
+
+    /* Блок об операторе */
+    .about-section {
+      display: flex;
+      gap: 4rem;
+      margin: 5rem 0;
+      align-items: center;
+    }
+
+    .about-photo {
+      flex: 0 0 300px;
+      height: 400px;
+      overflow: hidden;
+      box-shadow: 0 20px 30px -10px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .about-photo::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(191,163,123,0.2) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .about-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(50%);
+      transition: filter 0.5s;
+    }
+
+    .about-photo img:hover {
+      filter: grayscale(0%);
+    }
+
+    .about-text p {
+      font-size: 1.1rem;
+      margin-bottom: 1.2rem;
+      opacity: 0.9;
+    }
+
+    .signature {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: #bfa37b;
+      margin-top: 2rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #bfa37b;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    /* Секция оборудования */
+    .gear-section {
+      margin: 5rem 0;
+    }
+
+    .gear-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .gear-item {
+      background: #1a1a1a;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+
+    .gear-item:hover {
+      border-color: #bfa37b;
+      transform: translateY(-5px);
+    }
+
+    .gear-item img {
+      width: 100%;
+      height: 150px;
+      object-fit: contain;
+      filter: grayscale(0.5);
+      transition: filter 0.3s;
+    }
+
+    .gear-item:hover img {
+      filter: grayscale(0);
+    }
+
+    .gear-item h4 {
+      margin: 1rem 0 0.5rem;
+      color: #bfa37b;
+    }
+
+    /* Блок контактов: две колонки */
+    .contact-row {
+      display: flex;
+      gap: 2rem;
+      margin: 4rem 0;
+      background: #111;
+      padding: 2rem;
+    }
+
+    .contact-form {
+      flex: 1;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+    }
+
+    .contact-qr {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a1a;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .contact-qr h3 {
+      margin-bottom: 1rem;
+    }
+
+    .contact-qr p {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .qr-code {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .qr-code canvas {
+      display: block;
+      width: 150px;
+      height: 150px;
+    }
+
+    /* Форма */
+    .form-group {
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #bfa37b;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .form-group label {
+      position: absolute;
+      top: 1rem;
+      left: 0;
+      color: #aaa;
+      transition: 0.2s;
+      pointer-events: none;
+    }
+
+    .form-group input:focus ~ label,
+    .form-group input:valid ~ label,
+    .form-group textarea:focus ~ label,
+    .form-group textarea:valid ~ label {
+      top: -1.5rem;
+      font-size: 0.8rem;
+      color: #bfa37b;
+    }
+
+    /* Модальные окна */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #1a1a1a;
+      max-width: 800px;
+      width: 90%;
+      padding: 2rem;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 1px solid #bfa37b;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 2rem;
+      cursor: none;
+      color: #bfa37b;
+    }
+
+    /* Калькулятор */
+    .calculator {
+      margin-top: 2rem;
+    }
+
+    .service-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed #333;
+    }
+
+    .service-row input {
+      width: 60px;
+      padding: 0.3rem;
+      background: #0c0c0c;
+      border: 1px solid #bfa37b;
+      color: #fff;
+    }
+
+    .total {
+      font-size: 1.5rem;
+      color: #bfa37b;
+      text-align: right;
+      margin-top: 1rem;
+    }
+
+    /* Футер (без QR) */
+    .footer {
+      padding: 3rem 0;
+      border-top: 1px solid rgba(191, 163, 123, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      font-weight: 300;
+      color: #999;
+    }
+
+    .footer a {
+      color: #bfa37b;
+      text-decoration: none;
+      border-bottom: 1px dotted transparent;
+      transition: border-color 0.2s;
+    }
+
+    .footer a:hover {
+      border-bottom-color: #bfa37b;
+    }
+
+    .footer-buttons {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .footer-btn {
+      background: transparent;
+      border: 1px solid #bfa37b;
+      color: #bfa37b;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      cursor: none;
+      transition: all 0.2s;
+      line-height: 1.2;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .footer-btn:hover {
+      background: #bfa37b;
+      color: #0c0c0c;
+    }
+
+    /* Уменьшенная камера */
+    .draggable-camera {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #bfa37b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: grab;
+      z-index: 500;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      user-select: none;
+      transition: bottom 0.8s ease, right 0.8s ease, left 0.8s ease, top 0.8s ease;
+      background: transparent;
+      color: #bfa37b;
+    }
+
+    .draggable-camera:active {
+      cursor: grabbing;
+    }
+
+    .dropzone {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: 40px;
+      height: 40px;
+      background: rgba(191,163,123,0.2);
+      border: 2px dashed #bfa37b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: #bfa37b;
+      z-index: 500;
+    }
+
+    .camera-tooltip {
+      position: fixed;
+      bottom: 70px;
+      right: 30px;
+      background: #bfa37b;
+      color: #0c0c0c;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      z-index: 501;
+      opacity: 1;
+      transition: opacity 0.5s;
+    }
+
+    .camera-tooltip.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 1000px) {
+      .portfolio-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .gear-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .about-section {
+        flex-direction: column;
+        text-align: center;
+      }
+      .about-photo {
+        flex: 0 0 auto;
+        width: 280px;
+        height: 350px;
+      }
+      .timeline::before {
+        left: 0;
+      }
+      .timeline-item {
+        width: 100%;
+        left: 0 !important;
+        text-align: left !important;
+        padding-left: 2rem;
+      }
+      .nav {
+        display: none;
+      }
+      #prevTestimonial {
+        left: 10px;
+      }
+      #nextTestimonial {
+        right: 10px;
+      }
+      .contact-row {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .portfolio-grid {
+        grid-template-columns: 1fr;
+      }
+      .gear-grid {
+        grid-template-columns: 1fr;
+      }
+      .grid-item.large {
+        grid-column: span 1;
+      }
+      .quote {
+        padding: 1.5rem;
+        font-size: 1.4rem;
+      }
+      .testimonial-slide {
+        flex-direction: column;
+        text-align: center;
+      }
+      .footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Кастомный курсор -->
+  <div class="custom-cursor" id="customCursor"></div>
+
+  <!-- Навигация -->
+  <header class="header" id="mainHeader">
+    <button class="hamburger" id="hamburgerBtn" aria-label="Меню">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="header-content" id="headerContent">
+      <div class="logo" id="logo">Alexander Kudashkin</div>
+      <div class="nav">
+        <a href="#about">обо мне</a>
+        <a href="#portfolio">портфолио</a>
+        <a href="#gear">оборудование</a>
+        <a href="#contact">контакты</a>
+      </div>
+    </div>
+    <div class="header-quote" id="headerQuote">Искусство видеть невидимое</div>
+  </header>
+  <div class="header-placeholder expanded" id="headerPlaceholder"></div>
+
+  <div class="container">
+    <!-- Hero с видео -->
+    <section class="hero">
+      <video class="hero-video" autoplay muted loop playsinline poster="https://picsum.photos/id/1043/1600/900">
+        <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
+      </video>
+      <div class="hero-content">
+          <h1>Alexander Kudashkin</h1>
+        <p>оператор / режиссёр монтажа</p>
+        <a href="#contact" class="btn" id="contactBtn">обсудить проект</a>
+      </div>
+    </section>
+
+    <!-- Динамическая цитата -->
+    <div class="quote" id="dynamicQuote"></div>
+
+    <!-- Фильтры портфолио -->
+    <section id="portfolio">
+      <h2 class="animated-title" data-text="Портфолио">Портфолио</h2>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">все</button>
+        <button class="filter-btn" data-filter="wedding">свадьбы</button>
+        <button class="filter-btn" data-filter="commercial">реклама</button>
+        <button class="filter-btn" data-filter="interview">интервью</button>
+        <button class="filter-btn" data-filter="corporate">корпоративы</button>
+      </div>
+
+      <div class="portfolio-grid" id="portfolioGrid"></div>
+    </section>
+
+    <!-- Секция оборудования -->
+    <section id="gear" class="gear-section">
+      <h2 class="animated-title" data-text="Оборудование">Оборудование</h2>
+      <div class="gear-grid">
+        <div class="gear-item">
+          <img src="https://picsum.photos/id/0/300/200?grayscale" alt="Камера Sony">
+          <h4>Sony FX6</h4>
+          <p>Основная камера</p>
+        </div>
+        <div class="gear-item">
+          <img src="https://picsum.photos/id/1/300/200?grayscale" alt="Объектив">
+          <h4>Sigma 24-70mm f/2.8</h4>
+          <p>Универсальный зум</p>
+        </div>
+        <div class="gear-item">
+          <img src="https://picsum.photos/id/2/300/200?grayscale" alt="Свет">
+          <h4>Aputure 300D</h4>
+          <p>Ключевой свет</p>
+        </div>
+        <div class="gear-item">
+          <img src="https://picsum.photos/id/3/300/200?grayscale" alt="Стабилизатор">
+          <h4>DJI RS3 Pro</h4>
+          <p>Стабилизатор</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Карусель отзывов -->
+    <section class="testimonials">
+      <h2 class="animated-title" data-text="Отзывы">Отзывы</h2>
+      <div class="testimonial-container">
+        <div class="testimonial-slider" id="testimonialSlider"></div>
+      </div>
+      <div class="testimonial-controls">
+        <button class="testimonial-btn" id="prevTestimonial">←</button>
+        <div class="testimonial-dots" id="testimonialDots"></div>
+        <button class="testimonial-btn" id="nextTestimonial">→</button>
+      </div>
+    </section>
+
+    <!-- Таймлайн карьеры -->
+    <section class="timeline">
+      <h2 class="animated-title" data-text="Карьера">Карьера</h2>
+      <div class="timeline-item">
+        <span class="timeline-year">2016</span>
+        <div class="timeline-content">Начало работы на телевидении (корреспондент, оператор)</div>
+      </div>
+      <div class="timeline-item">
+        <span class="timeline-year">2018</span>
+        <div class="timeline-content">Первая самостоятельная съёмка свадьбы</div>
+      </div>
+      <div class="timeline-item">
+        <span class="timeline-year">2020</span>
+        <div class="timeline-content">Переход в рекламную съёмку (клиенты: Nike, local brands)</div>
+      </div>
+      <div class="timeline-item">
+        <span class="timeline-year">2022</span>
+        <div class="timeline-content">Начало работы над подкастами и интервью</div>
+      </div>
+      <div class="timeline-item">
+        <span class="timeline-year">2026</span>
+        <div class="timeline-content">Более 150 проектов по всему миру</div>
+      </div>
+    </section>
+
+    <!-- Блок об операторе -->
+    <section class="about-section" id="about">
+      <div class="about-photo">
+        <img src="https://picsum.photos/id/1005/600/800?grayscale" alt="Alexey Sokolov">
+      </div>
+      <div class="about-text">
+        <h3 class="animated-title" data-text="Алексей Соколов">Алексей Соколов</h3>
+        <p>Оператор с 10-летним стажем на ТВ (Первый канал, Россия 1). Снимал прямые эфиры, документальное кино, свадьбы, рекламные ролики, промо, корпоративы, выездные съёмки, подкасты, интервью и многое другое.</p>
+        <p>Мой подход — минимальное вмешательство в происходящее, максимальная естественность в кадре. Люблю работать с сюжетами, где есть жизнь.</p>
+        <p>Снимаю на cinema-камеры, использую только светлую оптику. Работаю один или с командой — под ваш бюджет.</p>
+        <div class="signature">Алексей Соколов</div>
+        <div class="stats" id="stats">
+          <div class="stat-item">
+            <span class="stat-number" id="projectCount">0</span>
+            <span class="stat-label">проектов</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="yearCount">0</span>
+            <span class="stat-label">лет опыта</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Контакты: форма + QR-код -->
+    <section id="contact">
+      <h2 class="animated-title" data-text="Связаться">Связаться</h2>
+      <div class="contact-row">
+        <!-- Форма -->
+        <div class="contact-form">
+          <form id="contactForm">
+            <div class="form-group">
+              <input type="text" id="name" required>
+              <label for="name">Ваше имя</label>
+            </div>
+            <div class="form-group">
+              <input type="email" id="email" required>
+              <label for="email">Email</label>
+            </div>
+            <div class="form-group">
+              <textarea id="message" rows="3" required></textarea>
+              <label for="message">Сообщение</label>
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Отправить</button>
+          </form>
+        </div>
+        <!-- QR-код -->
+        <div class="contact-qr">
+          <h3>Связаться быстро</h3>
+          <div class="qr-code" id="qrCode"></div>
+          <p>Отсканируйте QR-код, чтобы сохранить контакт</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Футер (без QR) -->
+    <footer class="footer">
+      <div>© Алексей Соколов, 2026</div>
+      <div class="footer-buttons">
+        <button class="footer-btn" id="priceBtn">Стоимость услуг</button>
+        <button class="footer-btn" id="checklistBtn">Что нужно знать</button>
+        <button class="footer-btn" id="friendBtn">Приведи друга</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Перетаскиваемая камера -->
+  <div class="draggable-camera" id="draggableCamera">🎥</div>
+  <div class="dropzone" id="dropzone">🎞️</div>
+  <div class="camera-tooltip" id="cameraTooltip">Перетащи меня на плёнку!</div>
+
+  <!-- Модальные окна (без изменений) -->
+  <div class="modal" id="projectModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <h3 id="modalTitle"></h3>
+      <img id="modalImage" src="" style="width:100%; margin:1rem 0;">
+      <p id="modalDescription"></p>
+      <div class="modal-gallery" id="modalGallery"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="priceModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closePriceModal">&times;</span>
+      <h2>Стоимость услуг</h2>
+      <ul class="price-list" style="list-style:none; margin:2rem 0;">
+        <li style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px dashed #333;">
+          <span>Свадебная съёмка (до 8 часов)</span> <span>75 000 ₽</span>
+        </li>
+        <li style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px dashed #333;">
+          <span>Рекламный ролик / промо</span> <span>от 55 000 ₽</span>
+        </li>
+        <li style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px dashed #333;">
+          <span>Интервью / подкаст (час)</span> <span>12 000 ₽</span>
+        </li>
+        <li style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px dashed #333;">
+          <span>Корпоратив / мероприятие (час)</span> <span>30 000 ₽</span>
+        </li>
+        <li style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px dashed #333;">
+          <span>Выездная съёмка (день)</span> <span>45 000 ₽</span>
+        </li>
+      </ul>
+      <button class="btn" id="calcBtn">Калькулятор</button>
+      <div class="calculator" id="calculator" style="display:none;">
+        <h3>Калькулятор стоимости</h3>
+        <div class="service-row">
+          <span>Свадьба (часы):</span>
+          <input type="number" id="weddingHours" min="0" value="0" step="1">
+        </div>
+        <div class="service-row">
+          <span>Реклама (дни):</span>
+          <input type="number" id="commercialDays" min="0" value="0" step="1">
+        </div>
+        <div class="service-row">
+          <span>Интервью (часы):</span>
+          <input type="number" id="interviewHours" min="0" value="0" step="1">
+        </div>
+        <div class="service-row">
+          <span>Корпоратив (часы):</span>
+          <input type="number" id="corporateHours" min="0" value="0" step="1">
+        </div>
+        <div class="total" id="totalPrice">0 ₽</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="checklistModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeChecklistModal">&times;</span>
+      <h2>Что нужно знать перед съёмкой</h2>
+      <ul style="margin:2rem 0; padding-left:1.5rem;">
+        <li>Определитесь с форматом и стилем видео</li>
+        <li>Подготовьте референсы (примеры желаемого)</li>
+        <li>Составьте тайминг мероприятия</li>
+        <li>Проверьте локацию на предмет освещения</li>
+        <li>Обсудите список необходимых кадров</li>
+        <li>Не забудьте про питание для команды (если съёмка длительная)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal" id="friendModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeFriendModal">&times;</span>
+      <h2>Приведи друга</h2>
+      <p>Ваш персональный промокод:</p>
+      <div class="discount-code" id="friendCode" style="font-size:2rem; color:#bfa37b; text-align:center; margin:1rem 0;">FRIEND123</div>
+      <p>Дайте его другу, и он получит скидку 10% на первый заказ. Вы тоже получите бонус!</p>
+    </div>
+  </div>
+
+  <div class="modal" id="discountModal">
+    <div class="modal-content discount-popup">
+      <span class="close-modal" id="closeDiscountModal">&times;</span>
+      <h2 style="color:#bfa37b;">Секретная скидка</h2>
+      <div class="discount-code" id="secretCode">TRIPLE15</div>
+      <p>Промокод на скидку 15% при заказе съёмки.</p>
+    </div>
+  </div>
+
+  <audio id="shutterSound" src="data:audio/wav;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA..."></audio>
+
+  <script>
+    (function() {
+      // Данные портфолио (12 проектов). Поле poster — превью видео.
+      const projects = [
+        { title: 'Свадьба Анны и Дмитрия', category: 'wedding', img: 'https://picsum.photos/id/1043/600/400', poster: 'https://picsum.photos/id/1043/800/600', desc: 'Летняя свадьба в Подмосковье. Нежный и эмоциональный фильм.', images: ['https://picsum.photos/id/1043/800/600', 'https://picsum.photos/id/1044/800/600', 'https://picsum.photos/id/1045/800/600'], isLarge: true, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4' },
+        { title: 'Реклама бренда "Luminous"', category: 'commercial', img: 'https://picsum.photos/id/42/600/400', poster: 'https://picsum.photos/id/42/800/600', desc: 'Промо-ролик для косметики. Съёмка в студии с естественным светом.', images: ['https://picsum.photos/id/42/800/600', 'https://picsum.photos/id/43/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4' },
+        { title: 'Интервью с режиссёром', category: 'interview', img: 'https://picsum.photos/id/20/600/400', poster: 'https://picsum.photos/id/20/800/600', desc: 'Беседа о современном кино для подкаста.', images: ['https://picsum.photos/id/20/800/600', 'https://picsum.photos/id/21/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4' },
+        { title: 'Корпоратив Яндекса', category: 'corporate', img: 'https://picsum.photos/id/106/600/400', poster: 'https://picsum.photos/id/106/800/600', desc: 'Новый год в офисе. Репортажная съёмка.', images: ['https://picsum.photos/id/106/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' },
+        { title: 'Выездная съёмка в Тоскане', category: 'wedding', img: 'https://picsum.photos/id/104/600/400', poster: 'https://picsum.photos/id/104/800/600', desc: 'Свадебный лавстори в Италии.', images: ['https://picsum.photos/id/104/800/600', 'https://picsum.photos/id/105/800/600'], isLarge: true, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4' },
+        { title: 'Подкаст "Технологии будущего"', category: 'interview', img: 'https://picsum.photos/id/107/600/400', poster: 'https://picsum.photos/id/107/800/600', desc: 'Студийная запись с тремя спикерами.', images: ['https://picsum.photos/id/107/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4' },
+        { title: 'Промо для театра', category: 'commercial', img: 'https://picsum.photos/id/108/600/400', poster: 'https://picsum.photos/id/108/800/600', desc: 'Рекламный ролик для театральной постановки.', images: ['https://picsum.photos/id/108/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4' },
+        { title: 'День рождения в загородном клубе', category: 'corporate', img: 'https://picsum.photos/id/109/600/400', poster: 'https://picsum.photos/id/109/800/600', desc: 'Частное мероприятие.', images: ['https://picsum.photos/id/109/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' },
+        { title: 'Свадебный тизер', category: 'wedding', img: 'https://picsum.photos/id/1015/600/400', poster: 'https://picsum.photos/id/1015/800/600', desc: 'Короткий романтический ролик.', images: ['https://picsum.photos/id/1015/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4' },
+        { title: 'Реклама Nike', category: 'commercial', img: 'https://picsum.photos/id/1018/600/400', poster: 'https://picsum.photos/id/1018/800/600', desc: 'Спортивный ролик.', images: ['https://picsum.photos/id/1018/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4' },
+        { title: 'Интервью с актёром', category: 'interview', img: 'https://picsum.photos/id/1020/600/400', poster: 'https://picsum.photos/id/1020/800/600', desc: 'Откровенный разговор.', images: ['https://picsum.photos/id/1020/800/600'], isLarge: false, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4' },
+        { title: 'Корпоратив Google', category: 'corporate', img: 'https://picsum.photos/id/1022/600/400', poster: 'https://picsum.photos/id/1022/800/600', desc: 'Масштабное мероприятие.', images: ['https://picsum.photos/id/1022/800/600'], isLarge: true, video: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' }
+      ];
+
+      const grid = document.getElementById('portfolioGrid');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      let currentFilter = 'all';
+
+      function renderGrid(filter) {
+        grid.innerHTML = '';
+        const filtered = filter === 'all' ? projects : projects.filter(p => p.category === filter);
+        filtered.forEach((proj) => {
+          const item = document.createElement('div');
+          item.className = 'grid-item';
+          if (proj.isLarge) item.classList.add('large');
+          const video = document.createElement('video');
+          video.src = proj.video;
+          video.muted = true;
+          video.loop = true;
+          video.preload = 'metadata';
+          video.poster = proj.poster; // используем poster как превью видео
+          video.addEventListener('mouseenter', () => video.play());
+          video.addEventListener('mouseleave', () => video.pause());
+          item.appendChild(video);
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay';
+          overlay.innerHTML = `<span>${proj.category}</span><h4>${proj.title}</h4>`;
+          item.appendChild(overlay);
+          item.addEventListener('click', () => openModal(proj));
+          grid.appendChild(item);
+        });
+      }
+      renderGrid('all');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          renderGrid(currentFilter);
+        });
+      });
+
+      const modal = document.getElementById('projectModal');
+      const closeModal = document.getElementById('closeModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalImage = document.getElementById('modalImage');
+      const modalDesc = document.getElementById('modalDescription');
+      const modalGallery = document.getElementById('modalGallery');
+
+      function openModal(proj) {
+        modalTitle.textContent = proj.title;
+        modalImage.src = proj.img;
+        modalDesc.textContent = proj.desc;
+        modalGallery.innerHTML = '';
+        proj.images.forEach(src => {
+          const img = document.createElement('img');
+          img.src = src;
+          img.addEventListener('click', () => modalImage.src = src);
+          modalGallery.appendChild(img);
+        });
+        modal.style.display = 'flex';
+      }
+
+      closeModal.addEventListener('click', () => modal.style.display = 'none');
+      window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+      // Динамические цитаты
+      const quotes = [
+        "Кино начинается задолго до того, как вы нажимаете «рекорд». Я помогаю историям обрести кадр.",
+        "Свет — это главный герой в кадре, а я лишь его ассистент.",
+        "Каждая съёмка — как первое свидание: волнительно и неповторимо.",
+        "Я снимаю так, чтобы через 10 лет вы пересматривали видео с теми же эмоциями.",
+        "Оператор должен быть невидимым, но его работу видно всегда.",
+        "Документальность и эстетика — два крыла моей работы.",
+        "Телевизионная школа научила меня скорости, а кино — глубине.",
+        "В кадре важна не только картинка, но и тишина между словами.",
+        "Свадьба — это не просто событие, это сценарий, написанный жизнью.",
+        "Реклама — это искусство продавать, не теряя художественности.",
+        "Интервью — это диалог, в котором камера становится третьим участником.",
+        "Корпоратив — это возможность показать компанию живой и настоящей.",
+        "Выездная съёмка — это всегда приключение и поиск нового света.",
+        "Подкаст снимать сложнее, чем кажется: нужно поймать ритм разговора.",
+        "День рождения — это чистые эмоции, их нельзя поставить.",
+        "Монтаж — это танец с материалом, где я веду.",
+        "Цветокоррекция — это настроение кадра.",
+        "Я ищу красоту в обыденности и показываю её вам.",
+        "10 лет на ТВ научили меня не бояться сложных задач.",
+        "Кино — это правда 24 кадра в секунду, а я её хранитель."
+      ];
+
+      const quoteElement = document.getElementById('dynamicQuote');
+      let currentQuoteIndex = Math.floor(Math.random() * quotes.length);
+      quoteElement.textContent = quotes[currentQuoteIndex];
+
+      setInterval(() => {
+        quoteElement.classList.add('fade-out');
+        setTimeout(() => {
+          let newIndex;
+          do {
+            newIndex = Math.floor(Math.random() * quotes.length);
+          } while (newIndex === currentQuoteIndex);
+          currentQuoteIndex = newIndex;
+          quoteElement.textContent = quotes[currentQuoteIndex];
+          quoteElement.classList.remove('fade-out');
+        }, 400);
+      }, 6000);
+
+      // Карусель отзывов
+      const testimonialsData = [
+        { text: '«Алексей — профессионал с тонким вкусом. Съёмка прошла незаметно, результат превзошёл ожидания.»', likes: 12 },
+        { text: '«Очень чуткий и внимательный. Сделал наш корпоратив живым и кинематографичным.»', likes: 8 },
+        { text: '«Работали с Алексеем на съёмках подкаста — всё организовано идеально.»', likes: 5 },
+        { text: '«Свадебный клип от Алексея — это маленький фильм. Мы пересматриваем каждый год.»', likes: 15 },
+        { text: '«Рекламный ролик для нашего бренда получился стильным и современным. Спасибо за подход!»', likes: 7 }
+      ];
+
+      const slider = document.getElementById('testimonialSlider');
+      const dotsContainer = document.getElementById('testimonialDots');
+      let currentSlide = 0;
+      let slideInterval;
+
+      const savedLikes = JSON.parse(localStorage.getItem('testimonialLikes')) || testimonialsData.map(t => t.likes);
+
+      function renderTestimonials() {
+        slider.innerHTML = '';
+        testimonialsData.forEach((t, idx) => {
+          const slide = document.createElement('div');
+          slide.className = 'testimonial-slide';
+          slide.innerHTML = `
+            <div class="testimonial-avatar">👤</div>
+            <div>
+              <div class="testimonial-text">${t.text}</div>
+              <div class="testimonial-like">
+                <button class="like-btn" data-idx="${idx}">👍</button>
+                <span class="like-count" id="like-${idx}">${savedLikes[idx]}</span>
+              </div>
+            </div>
+          `;
+          slider.appendChild(slide);
+        });
+      }
+      renderTestimonials();
+
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = e.target.dataset.idx;
+          savedLikes[idx] = (savedLikes[idx] || 0) + 1;
+          document.getElementById(`like-${idx}`).textContent = savedLikes[idx];
+          localStorage.setItem('testimonialLikes', JSON.stringify(savedLikes));
+          playShutter();
+        });
+      });
+
+      const slides = document.querySelectorAll('.testimonial-slide');
+      const prevBtn = document.getElementById('prevTestimonial');
+      const nextBtn = document.getElementById('nextTestimonial');
+
+      slides.forEach((_, idx) => {
+        const dot = document.createElement('span');
+        dot.classList.add('testimonial-dot');
+        if (idx === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(idx));
+        dotsContainer.appendChild(dot);
+      });
+
+      const dots = document.querySelectorAll('.testimonial-dot');
+
+      function goToSlide(idx) {
+        if (idx < 0) idx = slides.length - 1;
+        if (idx >= slides.length) idx = 0;
+        slider.style.transform = `translateX(-${idx * 100}%)`;
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        currentSlide = idx;
+      }
+
+      prevBtn.addEventListener('click', () => {
+        goToSlide(currentSlide - 1);
+        resetInterval();
+      });
+
+      nextBtn.addEventListener('click', () => {
+        goToSlide(currentSlide + 1);
+        resetInterval();
+      });
+
+      function startAutoPlay() {
+        slideInterval = setInterval(() => {
+          goToSlide(currentSlide + 1);
+        }, 5000);
+      }
+
+      function resetInterval() {
+        clearInterval(slideInterval);
+        startAutoPlay();
+      }
+
+      startAutoPlay();
+
+      // Пасхалка с перетаскиванием камеры
+      const camera = document.getElementById('draggableCamera');
+      const dropzone = document.getElementById('dropzone');
+      const discountModal = document.getElementById('discountModal');
+      const closeDiscount = document.getElementById('closeDiscountModal');
+      const cameraTooltip = document.getElementById('cameraTooltip');
+
+      let offsetX, offsetY;
+      let isDragging = false;
+      const initialBottom = 30;
+      const initialRight = 30;
+
+      setTimeout(() => {
+        cameraTooltip.classList.add('hidden');
+      }, 5000);
+
+      camera.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        const rect = camera.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        camera.style.transition = 'none';
+        camera.style.left = rect.left + 'px';
+        camera.style.top = rect.top + 'px';
+        camera.style.right = 'auto';
+        camera.style.bottom = 'auto';
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        cameraTooltip.classList.add('hidden');
+      });
+
+      function onMouseMove(e) {
+        if (!isDragging) return;
+        camera.style.left = e.clientX - offsetX + 'px';
+        camera.style.top = e.clientY - offsetY + 'px';
+      }
+
+      function onMouseUp(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        const cameraRect = camera.getBoundingClientRect();
+        const dropRect = dropzone.getBoundingClientRect();
+        if (cameraRect.right > dropRect.left && cameraRect.left < dropRect.right && cameraRect.bottom > dropRect.top && cameraRect.top < dropRect.bottom) {
+          discountModal.style.display = 'flex';
+        }
+        camera.style.transition = 'bottom 0.8s ease, right 0.8s ease, left 0.8s ease, top 0.8s ease';
+        camera.style.left = '';
+        camera.style.top = '';
+        camera.style.bottom = initialBottom + 'px';
+        camera.style.right = initialRight + 'px';
+        setTimeout(() => {
+          camera.style.transition = '';
+        }, 800);
+      }
+
+      closeDiscount.addEventListener('click', () => discountModal.style.display = 'none');
+      window.addEventListener('click', (e) => { if (e.target === discountModal) discountModal.style.display = 'none'; });
+
+      // Тройной клик на логотип
+      const logo = document.getElementById('logo');
+      let clickCount = 0;
+      logo.addEventListener('click', () => {
+        clickCount++;
+        if (clickCount === 3) {
+          document.getElementById('secretCode').textContent = 'TRIPLE15';
+          discountModal.style.display = 'flex';
+          clickCount = 0;
+        }
+        setTimeout(() => { clickCount = 0; }, 1000);
+      });
+
+      // Калькулятор
+      const priceModal = document.getElementById('priceModal');
+      const priceBtn = document.getElementById('priceBtn');
+      const closePriceModal = document.getElementById('closePriceModal');
+      const calcBtn = document.getElementById('calcBtn');
+      const calculator = document.getElementById('calculator');
+      const weddingHours = document.getElementById('weddingHours');
+      const commercialDays = document.getElementById('commercialDays');
+      const interviewHours = document.getElementById('interviewHours');
+      const corporateHours = document.getElementById('corporateHours');
+      const totalPrice = document.getElementById('totalPrice');
+
+      priceBtn.addEventListener('click', () => priceModal.style.display = 'flex');
+      closePriceModal.addEventListener('click', () => priceModal.style.display = 'none');
+      window.addEventListener('click', (e) => { if (e.target === priceModal) priceModal.style.display = 'none'; });
+
+      calcBtn.addEventListener('click', () => {
+        calculator.style.display = calculator.style.display === 'none' ? 'block' : 'none';
+      });
+
+      function updateTotal() {
+        const wedding = parseInt(weddingHours.value || 0) * 15000;
+        const commercial = parseInt(commercialDays.value || 0) * 55000;
+        const interview = parseInt(interviewHours.value || 0) * 12000;
+        const corporate = parseInt(corporateHours.value || 0) * 30000;
+        totalPrice.textContent = (wedding + commercial + interview + corporate).toLocaleString() + ' ₽';
+      }
+
+      weddingHours.addEventListener('input', updateTotal);
+      commercialDays.addEventListener('input', updateTotal);
+      interviewHours.addEventListener('input', updateTotal);
+      corporateHours.addEventListener('input', updateTotal);
+
+      // Чек-лист
+      const checklistModal = document.getElementById('checklistModal');
+      const checklistBtn = document.getElementById('checklistBtn');
+      const closeChecklistModal = document.getElementById('closeChecklistModal');
+
+      checklistBtn.addEventListener('click', () => checklistModal.style.display = 'flex');
+      closeChecklistModal.addEventListener('click', () => checklistModal.style.display = 'none');
+      window.addEventListener('click', (e) => { if (e.target === checklistModal) checklistModal.style.display = 'none'; });
+
+      // Акция "Приведи друга"
+      const friendModal = document.getElementById('friendModal');
+      const friendBtn = document.getElementById('friendBtn');
+      const closeFriendModal = document.getElementById('closeFriendModal');
+      const friendCode = document.getElementById('friendCode');
+
+      friendBtn.addEventListener('click', () => {
+        const code = 'FRIEND' + Math.floor(Math.random() * 1000);
+        friendCode.textContent = code;
+        friendModal.style.display = 'flex';
+      });
+      closeFriendModal.addEventListener('click', () => friendModal.style.display = 'none');
+      window.addEventListener('click', (e) => { if (e.target === friendModal) friendModal.style.display = 'none'; });
+
+      // Звук
+      const shutterSound = document.getElementById('shutterSound');
+
+      function playShutter() {
+        if (shutterSound) {
+          shutterSound.currentTime = 0;
+          shutterSound.play().catch(e => console.log('Audio play failed', e));
+        }
+      }
+
+      document.querySelectorAll('.btn, .filter-btn, .testimonial-btn, .like-btn, .footer-btn').forEach(el => {
+        el.addEventListener('click', playShutter);
+      });
+
+      // Счётчики
+      const projectCountEl = document.getElementById('projectCount');
+      const yearCountEl = document.getElementById('yearCount');
+      let animated = false;
+
+      function animateCounters() {
+        if (animated) return;
+        const statsSection = document.getElementById('stats');
+        const rect = statsSection.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          animated = true;
+          let projects = 0;
+          let years = 0;
+          const targetProjects = 150;
+          const targetYears = 10;
+          const interval = setInterval(() => {
+            if (projects < targetProjects) {
+              projects += 1;
+              projectCountEl.textContent = projects;
+            }
+            if (years < targetYears) {
+              years += 0.1;
+              yearCountEl.textContent = years.toFixed(1);
+            }
+            if (projects >= targetProjects && years >= targetYears) {
+              clearInterval(interval);
+            }
+          }, 20);
+        }
+      }
+
+      window.addEventListener('scroll', animateCounters);
+      animateCounters();
+
+      // QR-код (генерируем в контейнере)
+      const qrContainer = document.getElementById('qrCode');
+      qrContainer.innerHTML = '<canvas width="150" height="150"></canvas>';
+      const canvas = qrContainer.querySelector('canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 150, 150);
+        ctx.fillStyle = '#000000';
+        // Создаём простой паттерн (для демонстрации)
+        for (let i = 0; i < 15; i++) {
+          for (let j = 0; j < 15; j++) {
+            if ((i + j) % 2 === 0) {
+              ctx.fillRect(i*10, j*10, 8, 8);
+            }
+          }
+        }
+      }
+
+      // Навигация
+      const headerContent = document.getElementById('headerContent');
+      const hamburgerBtn = document.getElementById('hamburgerBtn');
+      const headerPlaceholder = document.getElementById('headerPlaceholder');
+      const headerQuote = document.getElementById('headerQuote');
+      let panelVisible = true;
+
+      hamburgerBtn.addEventListener('click', () => {
+        if (panelVisible) {
+          headerContent.classList.add('hidden');
+          headerQuote.classList.add('visible');
+          headerPlaceholder.classList.remove('expanded');
+          headerPlaceholder.classList.add('compact');
+          hamburgerBtn.classList.add('active');
+          panelVisible = false;
+        } else {
+          headerContent.classList.remove('hidden');
+          headerQuote.classList.remove('visible');
+          headerPlaceholder.classList.add('expanded');
+          headerPlaceholder.classList.remove('compact');
+          hamburgerBtn.classList.remove('active');
+          panelVisible = true;
+        }
+      });
+
+      // Плавный скролл с отступом
+      document.querySelectorAll('.nav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetId = link.getAttribute('href').substring(1);
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) {
+            const y = targetEl.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        });
+      });
+
+      // Анимация заголовков
+      const titles = document.querySelectorAll('.animated-title');
+      
+      function randomCharBasedOnTarget(targetChar) {
+        const isUpper = targetChar === targetChar.toUpperCase() && targetChar !== targetChar.toLowerCase();
+        const chars = isUpper 
+          ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
+          : 'abcdefghijklmnopqrstuvwxyzабвгдеёжзийклмнопрстуфхцчшщъыьэюя';
+        return chars[Math.floor(Math.random() * chars.length)];
+      }
+
+      function animateTitle(el) {
+        const originalText = el.dataset.text || el.textContent;
+        const length = originalText.length;
+        let frame = 0;
+        const interval = setInterval(() => {
+          let newText = '';
+          for (let i = 0; i < length; i++) {
+            if (i < Math.floor(frame / 3)) {
+              newText += originalText[i];
+            } else {
+              newText += randomCharBasedOnTarget(originalText[i]);
+            }
+          }
+          el.textContent = newText;
+          if (frame >= length * 3) {
+            clearInterval(interval);
+            el.textContent = originalText;
+          }
+          frame++;
+        }, 30);
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateTitle(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      titles.forEach(title => observer.observe(title));
+
+      // Анимация камеры при клике
+      const contactBtn = document.getElementById('contactBtn');
+      const nameInput = document.getElementById('name');
+
+      contactBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetEl = document.getElementById('contact');
+        const y = targetEl.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+
+        const targetRect = nameInput.getBoundingClientRect();
+        const cameraRect = camera.getBoundingClientRect();
+        const startRight = window.innerWidth - cameraRect.right;
+        const startBottom = window.innerHeight - cameraRect.bottom;
+
+        camera.style.transition = 'none';
+        camera.style.left = cameraRect.left + 'px';
+        camera.style.top = cameraRect.top + 'px';
+        camera.style.bottom = 'auto';
+        camera.style.right = 'auto';
+        camera.offsetHeight;
+        camera.style.transition = 'top 0.8s ease, left 0.8s ease';
+
+        const targetLeft = targetRect.left + targetRect.width / 2 - cameraRect.width / 2;
+        const targetTop = targetRect.top + targetRect.height / 2 - cameraRect.height / 2;
+        camera.style.left = targetLeft + 'px';
+        camera.style.top = targetTop + 'px';
+
+        setTimeout(() => {
+          camera.style.transition = 'top 0.8s ease, left 0.8s ease';
+          camera.style.left = (window.innerWidth - startRight - cameraRect.width) + 'px';
+          camera.style.top = (window.innerHeight - startBottom - cameraRect.height) + 'px';
+
+          setTimeout(() => {
+            camera.style.position = 'fixed';
+            camera.style.bottom = initialBottom + 'px';
+            camera.style.right = initialRight + 'px';
+            camera.style.left = '';
+            camera.style.top = '';
+            camera.style.transition = '';
+          }, 800);
+        }, 1000);
+      });
+
+      // Кастомный курсор
+      const cursor = document.getElementById('customCursor');
+      document.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+      });
+
+      document.querySelectorAll('a, button, .grid-item, .filter-btn, .testimonial-btn, .like-btn, .footer-btn, .hamburger').forEach(el => {
+        el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+        el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+      });
+    })();
+  </script>
+</body>
+</html>
